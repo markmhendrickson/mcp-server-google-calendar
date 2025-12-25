@@ -2,6 +2,10 @@
 
 A Model Context Protocol (MCP) server that provides Google Calendar integration for AI assistants like Claude.
 
+## Credits
+
+This is a fork of [nspady/google-calendar-mcp](https://github.com/nspady/google-calendar-mcp). The original repository provides comprehensive Google Calendar API integration with multi-account support.
+
 ## Features
 
 - **Multi-Account Support**: Connect multiple Google accounts (e.g., work, personal) and query them simultaneously
@@ -42,10 +46,31 @@ A Model Context Protocol (MCP) server that provides Google Calendar integration 
 
 **Option 1: Use with npx (Recommended)**
 
+### Claude Desktop Configuration
+
 Add to your Claude Desktop configuration:
 
 **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "google-calendar": {
+      "command": "npx",
+      "args": ["@cocal/google-calendar-mcp"],
+      "env": {
+        "GOOGLE_OAUTH_CREDENTIALS": "/path/to/your/gcp-oauth.keys.json"
+      }
+    }
+  }
+}
+```
+
+### Cursor Configuration
+
+Add to your Cursor MCP settings (typically `~/.cursor/mcp.json` or Cursor settings):
+
 ```json
 {
   "mcpServers": {

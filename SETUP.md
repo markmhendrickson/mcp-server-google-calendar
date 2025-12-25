@@ -35,7 +35,7 @@ If creating new credentials:
 
 Already completed:
 ```bash
-cd /Users/markmhendrickson/Projects/personal/mcp-servers/google-calendar
+cd mcp-servers/google-calendar
 npm install
 npm run build
 ```
@@ -45,7 +45,7 @@ npm run build
 On first use, the MCP server will prompt for authentication. You can also authenticate manually:
 
 ```bash
-cd /Users/markmhendrickson/Projects/personal/mcp-servers/google-calendar
+cd mcp-servers/google-calendar
 export GOOGLE_OAUTH_CREDENTIALS="$HOME/.gmail-mcp/gcp-oauth.keys.json"
 npm run auth
 ```

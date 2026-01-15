@@ -43,16 +43,21 @@ export class GoogleCalendarMcpServer {
     this.tokenManager = new TokenManager(this.oauth2Client);
     this.authServer = new AuthServer(this.oauth2Client);
 
-    // 2. Load all authenticated accounts
+    // 2. Set up token reload callback to update accounts map when tokens change
+    this.tokenManager.setOnTokenReloadCallback((reloadedAccounts) => {
+      this.accounts = reloadedAccounts;
+    });
+
+    // 3. Load all authenticated accounts
     this.accounts = await this.tokenManager.loadAllAccounts();
 
-    // 3. Handle startup authentication based on transport type
+    // 4. Handle startup authentication based on transport type
     await this.handleStartupAuthentication();
 
-    // 4. Set up Modern Tool Definitions
+    // 5. Set up Modern Tool Definitions
     this.registerTools();
 
-    // 5. Set up Graceful Shutdown
+    // 6. Set up Graceful Shutdown
     this.setupGracefulShutdown();
   }
 
@@ -223,6 +228,11 @@ export class GoogleCalendarMcpServer {
       try {
         if (this.authServer) {
           await this.authServer.stop();
+        }
+        
+        // Clean up token file watcher
+        if (this.tokenManager) {
+          this.tokenManager.cleanup();
         }
         
         // McpServer handles transport cleanup automatically

@@ -1,5 +1,6 @@
 import { OAuth2Client, Credentials } from 'google-auth-library';
 import fs from 'fs/promises';
+import { watch, watchFile, unwatchFile } from 'fs';
 import { getSecureTokenPath, getAccountMode, getLegacyTokenPath } from './utils.js';
 import { GaxiosError } from 'gaxios';
 import { mkdir } from 'fs/promises';
@@ -39,6 +40,8 @@ export class TokenManager {
     redirectUri: string;
   };
   private writeQueue: Promise<void> = Promise.resolve();
+  private tokenFileWatcher: ReturnType<typeof watch> | null = null;
+  private onTokenReloadCallback: ((accounts: Map<string, OAuth2Client>) => void) | null = null;
 
   constructor(oauth2Client: OAuth2Client) {
     this.oauth2Client = oauth2Client;
@@ -53,6 +56,71 @@ export class TokenManager {
     };
 
     this.setupTokenRefresh();
+    this.setupTokenFileWatcher();
+  }
+
+  /**
+   * Set callback to be called when tokens are reloaded from file
+   */
+  public setOnTokenReloadCallback(callback: (accounts: Map<string, OAuth2Client>) => void): void {
+    this.onTokenReloadCallback = callback;
+  }
+
+  /**
+   * Watch token file for changes and reload tokens automatically
+   */
+  private setupTokenFileWatcher(): void {
+    try {
+      // Use watchFile for better cross-platform compatibility
+      let lastModified = 0;
+      watchFile(this.tokenPath, { interval: 2000 }, async (curr, prev) => {
+        // Only reload if file was actually modified (not just accessed)
+        if (curr.mtimeMs > prev.mtimeMs && curr.mtimeMs > lastModified) {
+          lastModified = curr.mtimeMs;
+          
+          // Debounce: wait a bit to ensure file write is complete
+          setTimeout(async () => {
+            try {
+              process.stderr.write(`Token file changed, reloading tokens...\n`);
+              const reloadedAccounts = await this.loadAllAccounts();
+              
+              // Update main oauth2Client if it's the current account mode
+              const currentTokens = await this.loadMultiAccountTokens();
+              const tokens = currentTokens[this.accountMode];
+              if (tokens) {
+                this.oauth2Client.setCredentials(tokens);
+              }
+              
+              // Notify callback if set (e.g., server needs to update accounts map)
+              if (this.onTokenReloadCallback) {
+                this.onTokenReloadCallback(reloadedAccounts);
+              }
+              
+              process.stderr.write(`Tokens reloaded successfully. Found ${reloadedAccounts.size} account(s).\n`);
+            } catch (error) {
+              process.stderr.write(`Error reloading tokens: ${error instanceof Error ? error.message : String(error)}\n`);
+            }
+          }, 500); // 500ms debounce
+        }
+      });
+      
+      process.stderr.write(`Watching token file for changes: ${this.tokenPath}\n`);
+    } catch (error) {
+      // File might not exist yet, that's okay - watcher will be set up when file is created
+      if (error instanceof Error && 'code' in error && error.code !== 'ENOENT') {
+        process.stderr.write(`Warning: Could not set up token file watcher: ${error.message}\n`);
+      }
+    }
+  }
+
+  /**
+   * Clean up file watcher on shutdown
+   */
+  public cleanup(): void {
+    if (this.tokenFileWatcher) {
+      unwatchFile(this.tokenPath);
+      this.tokenFileWatcher = null;
+    }
   }
 
   // Method to expose the token path

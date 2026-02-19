@@ -2,6 +2,7 @@ import { OAuth2Client, Credentials } from 'google-auth-library';
 import fs from 'fs/promises';
 import { watch, watchFile, unwatchFile } from 'fs';
 import { getSecureTokenPath, getAccountMode, getLegacyTokenPath } from './utils.js';
+import { validateAccountId } from './paths.js';
 import { GaxiosError } from 'gaxios';
 import { mkdir } from 'fs/promises';
 import { dirname } from 'path';
@@ -609,7 +610,6 @@ export class TokenManager {
    */
   getClient(accountId: string): OAuth2Client {
     // Validate account ID first
-    const { validateAccountId } = require('./paths.js');
     validateAccountId(accountId);
 
     const client = this.accounts.get(accountId);

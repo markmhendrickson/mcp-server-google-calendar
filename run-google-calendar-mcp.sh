@@ -70,6 +70,9 @@ if [ -z "$GOOGLE_CALENDAR_MCP_TOKEN_PATH" ] && [ -z "$MCP_CALENDAR_TOKEN_PATH" ]
     export MCP_GOOGLE_CALENDAR_TOKEN_PATH="$REPO_ROOT/.creds/google-calendar-token.json"
 fi
 
+# Server reads credentials from GOOGLE_OAUTH_CREDENTIALS only (getKeysFilePath)
+export GOOGLE_OAUTH_CREDENTIALS="${MCP_CALENDAR_CREDENTIALS_PATH:-$REPO_ROOT/.creds/gcp-oauth.keys.json}"
+
 # Check if server is built (Node.js/TypeScript project)
 if [ ! -f "$SCRIPT_DIR/build/index.js" ]; then
     # Try to build if dist doesn't exist

@@ -1,3 +1,8 @@
+---
+description: 
+alwaysApply: false
+---
+
 # Agent Guidelines
 
 This document provides instructions for AI agents interacting with the Google Calendar MCP server.

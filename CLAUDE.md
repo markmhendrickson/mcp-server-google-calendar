@@ -1,3 +1,13 @@
+---
+description: 
+alwaysApply: false
+---
+
+---
+description: 
+alwaysApply: false
+---
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -231,4 +241,3 @@ MCP tools return errors as successful responses with error content, not as throw
 **Key Differences:**
 - **stdio**: For Claude Desktop only, local machine
 - **HTTP**: For testing, development, debugging (local only)
-
